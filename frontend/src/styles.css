@@ -1382,7 +1382,20 @@ a.kpi-card:hover { border-color: #b9cdd4; box-shadow: 0 12px 30px rgba(6, 50, 69
 .kpi-bar > span { display: block; height: 100%; border-radius: inherit; background: var(--green); }
 .kpi-bar-warn > span { background: #d8a13a; }
 
-/* Bandeau de synthèse budgétaire */
+/* Étiquettes de statut propres à l'espace propriétaire */
+.status-paused { color: #846122; background: #f8f2e5; }
+.status-completed { color: #267642; background: #eaf7ed; }
+.status-archived { color: #6f7c80; background: #f1f4f4; }
+
+/* Bandeau de synthèse budgétaire (tableau de bord du propriétaire) */
+.budget-summary { display: flex; flex-wrap: wrap; align-items: center; gap: 18px; margin-bottom: 22px; padding: 15px 18px; border: 1px solid #e7ecec; border-radius: 8px; background: #fff; }
+.budget-summary-icon { flex: none; width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; color: var(--green-dark); background: #eaf7ed; }
+.budget-summary-metric { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.budget-summary-metric small { color: #7d8d92; font-size: 8px; font-weight: 700; letter-spacing: .1em; line-height: 1.4; text-transform: uppercase; }
+.budget-summary-metric strong { color: var(--blue-dark); font-family: 'Manrope', sans-serif; font-size: 17px; font-weight: 700; letter-spacing: -.025em; line-height: 1.2; }
+.budget-summary-divider { flex: none; width: 1px; align-self: stretch; min-height: 34px; background: #eceff0; }
+.budget-summary-note { display: inline-flex; align-items: center; gap: 7px; margin-left: auto; color: #8b9a9f; font-size: 9px; line-height: 1.5; }
+.budget-summary-note svg { flex: none; color: #9aa9ad; }
 
 /* Cartes de projet cliquables */
 .project-card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }
@@ -1472,6 +1485,10 @@ a.kpi-card:hover { border-color: #b9cdd4; box-shadow: 0 12px 30px rgba(6, 50, 69
   .kpi-row, .kpi-row-dashboard { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
   .kpi-value { font-size: 16px; }
   .project-card-grid { grid-template-columns: 1fr; }
+  .budget-summary { gap: 14px; padding: 14px 15px; }
+  .budget-summary-metric strong { font-size: 15px; }
+  .budget-summary-divider { display: none; }
+  .budget-summary-note { flex-basis: 100%; margin-left: 0; }
   .expense-row { grid-template-columns: minmax(0, 1fr) auto; row-gap: 8px; }
   .expense-row-head { display: none; }
   .expense-date { display: none; }

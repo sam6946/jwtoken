@@ -252,11 +252,12 @@ function ClientDashboard({ data }: { data: DashboardResponse }) {
       </Link>
     </div>
 
-    {stats.budget_total && Number(stats.budget_total) > 0 && <div className="budget-strip">
-      <span className="budget-strip-icon"><Wallet size={18} /></span>
-      <span><small>Budget total suivi</small><strong>{amount(stats.budget_total)}</strong></span>
-      <span><small>Dépenses engagées</small><strong>{amount(stats.budget_spent)}</strong></span>
-      <span className="budget-strip-note"><Info size={13} /> Chaque projet détaille ses dépenses et ses justificatifs.</span>
+    {stats.budget_total && Number(stats.budget_total) > 0 && <div className="budget-summary">
+      <span className="budget-summary-icon"><Wallet size={18} /></span>
+      <span className="budget-summary-metric"><small>Budget total suivi</small><strong>{amount(stats.budget_total)}</strong></span>
+      <span className="budget-summary-divider" aria-hidden="true" />
+      <span className="budget-summary-metric"><small>Dépenses engagées</small><strong>{amount(stats.budget_spent)}</strong></span>
+      <span className="budget-summary-note"><Info size={13} /> Chaque projet détaille ses dépenses et ses justificatifs.</span>
     </div>}
 
     <section className="dashboard-section" id="client-projets">
@@ -383,7 +384,7 @@ function TaskRow({ task, busy, onStatus }: { task: DashboardTask; busy: boolean;
 function BtpDashboard({ data }: { data: DashboardResponse }) {
   const company = data.company;
   return <>
-    <div className="dashboard-stat-grid btp-stat-grid">
+    <div className="dashboard-stat-grid">
       <div className="dashboard-metric"><span className="metric-icon metric-blue"><Building2 size={18} /></span><span><small>Mon entreprise</small><strong>{company ? company.name : 'À créer'}</strong><em>{company ? `Profil complété à ${company.profile_completion}%` : 'Créez votre vitrine KEMTA'}</em></span></div>
       <div className="dashboard-metric"><span className="metric-icon metric-green"><BriefcaseBusiness size={18} /></span><span><small>Opportunités ouvertes</small><strong>{data.statistics.open_opportunities ?? 0}</strong><em>Publiées par l’équipe KEMTA</em></span></div>
       <div className="dashboard-metric"><span className="metric-icon metric-sand"><ClipboardList size={18} /></span><span><small>Candidatures</small><strong>{data.statistics.applications ?? 0}</strong><em>Envoyées depuis votre espace</em></span></div>

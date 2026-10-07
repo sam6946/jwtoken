@@ -1,0 +1,19 @@
+services:
+  backend:
+    command: ["sh", "-c", "python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:8000"]
+    environment:
+      DJANGO_DEBUG: "true"
+      SECURE_SSL_REDIRECT: "false"
+    ports:
+      - "${API_PORT:-8000}:8000"
+    volumes:
+      - ./backend:/app/backend
+      - media_data:/app/backend/media
+
+  celery_worker:
+    volumes:
+      - ./backend:/app/backend
+
+  celery_beat:
+    volumes:
+      - ./backend:/app/backend

@@ -1,0 +1,15 @@
+.git
+.gitignore
+.env
+.env.*
+**/__pycache__
+**/*.py[cod]
+**/*.sqlite3
+**/.pytest_cache
+**/.venv
+**/node_modules
+frontend/dist
+frontend/.vite
+backend/media
+backend/staticfiles
+certs

@@ -3,7 +3,7 @@ import type { FormEvent } from 'react';
 import { Link, Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   ArrowLeft, ArrowRight, Check, CheckCircle2, Eye, EyeOff,
-  KeyRound, LockKeyhole, MessageSquareText, ShieldCheck, Smartphone,
+  Info, KeyRound, LockKeyhole, MessageSquareText, ShieldCheck, Smartphone,
 } from 'lucide-react';
 import { Brand } from '../../components/Brand';
 import { ApiError, apiRequest, jsonBody } from '../../lib/api';
@@ -98,6 +98,8 @@ export function AuthPage() {
   const requestedRole: UserRole = searchParams.get('role') === 'BTP_COMPANY' ? 'BTP_COMPANY' : 'CUSTOMER';
   const isBtpSignup = mode === 'register' && requestedRole === 'BTP_COMPANY';
   const redirectTo = searchParams.get('next') || '/dashboard';
+  // Reprise après expiration : on explique la redirection plutôt que de laisser l'utilisateur deviner.
+  const sessionExpiredNotice = searchParams.get('session') === 'expiree';
 
   useEffect(() => {
     if (secondsLeft <= 0) return undefined;
@@ -301,6 +303,7 @@ export function AuthPage() {
           <h2>{currentTitle}</h2>
           <p className="auth-lede">{mode === 'register' ? 'Le téléphone est votre identifiant principal. Votre adresse email reste facultative.' : mode === 'reset' ? 'Nous vérifierons votre numéro avant de modifier votre mot de passe.' : 'Connectez-vous avec votre numéro de téléphone.'}</p>
 
+          {mode === 'login' && sessionExpiredNotice && <p className="auth-session-note" role="status"><Info size={15} /> <span><strong>Votre session a expiré.</strong> Reconnectez-vous pour retrouver votre espace : aucune donnée n’a été perdue.</span></p>}
           {mode === 'login' && <form onSubmit={(event) => void submitLogin(event)}>
             <label className="field auth-field"><span>Numéro de téléphone</span><PhoneNumberInput value={phone} dialingCode={dialingCode} onValueChange={(value) => { setPhone(value); setError(''); }} onDialingCodeChange={(code) => { setDialingCode(code); setError(''); }} /></label>
             {loginMethod === 'password' ? <>

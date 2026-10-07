@@ -157,6 +157,35 @@ if REDIS_URL:
 else:
     CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache", "LOCATION": "kemta-local"}}
 
+def _throttle_rates(rates: dict, debug: bool | None = None) -> dict:
+    """Applique un facteur de tolérance aux limites anti-abus.
+
+    Les valeurs ci-dessous sont celles de la production : elles protègent les
+    formulaires publics (demandes de service, connexions, codes OTP). En
+    développement ou en démonstration, la recette automatisée enchaîne les envois,
+    ce qui déclenche légitimement ces limites. La variable
+    `KEMTA_THROTTLE_FACTOR` (défaut 1, ignorée en production) permet de les
+    assouplir localement sans jamais modifier les réglages de production.
+    """
+    is_debug = DEBUG if debug is None else debug
+    factor = 1
+    if is_debug:
+        try:
+            factor = max(1, int(os.getenv("KEMTA_THROTTLE_FACTOR", "1")))
+        except ValueError:
+            factor = 1
+    if factor == 1:
+        return rates
+    adjusted = {}
+    for scope, rate in rates.items():
+        try:
+            count, period = rate.split("/")
+            adjusted[scope] = f"{int(count) * factor}/{period}"
+        except ValueError:
+            adjusted[scope] = rate
+    return adjusted
+
+
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "accounts.authentication.KemtaJWTAuthentication",
@@ -168,7 +197,7 @@ REST_FRAMEWORK = {
         "rest_framework.throttling.AnonRateThrottle",
         "rest_framework.throttling.UserRateThrottle",
     ],
-    "DEFAULT_THROTTLE_RATES": {
+    "DEFAULT_THROTTLE_RATES": _throttle_rates({
         "anon": "90/minute",
         "user": "180/minute",
         "otp": "5/hour",
@@ -178,7 +207,7 @@ REST_FRAMEWORK = {
         "service_request": "10/hour",
         "company_public": "120/minute",
         "opportunity_public": "90/minute",
-    },
+    }),
     "DEFAULT_RENDERER_CLASSES": (
         ["rest_framework.renderers.JSONRenderer", "rest_framework.renderers.BrowsableAPIRenderer"]
         if DEBUG

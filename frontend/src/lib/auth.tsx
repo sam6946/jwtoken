@@ -27,6 +27,8 @@ interface AuthContextValue {
   accessToken: string | null;
   isReady: boolean;
   isAuthenticated: boolean;
+  /** Vrai lorsqu'une session en cours a été perdue (jeton refusé) et non lors d'une simple visite. */
+  sessionLost: boolean;
   establishSession: (access: string, nextUser: KemtaUser, refresh?: string | null) => void;
   signOut: () => Promise<void>;
 }
@@ -37,6 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<KemtaUser | null>(null);
   const [accessToken, setAccessTokenState] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
+  const [sessionLost, setSessionLost] = useState(false);
   // Toute session établie après le démarrage (connexion, autre onglet) prime sur la restauration en cours.
   const sessionEpoch = useRef(0);
 
@@ -46,6 +49,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setApiAccessToken(access);
     setAccessTokenState(access);
     setUser(nextUser);
+    setSessionLost(false);
     setIsReady(true);
   }, []);
 
@@ -103,7 +107,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [clearSession]);
 
-  useEffect(() => onSessionLost(clearSession), [clearSession]);
+  useEffect(() => onSessionLost(() => {
+    setSessionLost(true);
+    clearSession();
+  }), [clearSession]);
 
   const signOut = useCallback(async () => {
     try {
@@ -118,9 +125,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     accessToken,
     isReady,
     isAuthenticated: user !== null,
+    sessionLost,
     establishSession,
     signOut,
-  }), [user, accessToken, isReady, establishSession, signOut]);
+  }), [user, accessToken, isReady, sessionLost, establishSession, signOut]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

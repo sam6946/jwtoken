@@ -143,7 +143,7 @@ function deadlineLabel(value: string): string {
 }
 
 export function DashboardPage() {
-  const { user, isReady, signOut } = useAuth();
+  const { user, isReady, signOut, sessionLost } = useAuth();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [busyTaskId, setBusyTaskId] = useState<number | null>(null);
@@ -172,7 +172,10 @@ export function DashboardPage() {
   }
 
   if (!isReady) return <div className="app-loading"><span className="loading-mark" /><p>Préparation de votre espace…</p></div>;
-  if (!user) return <Navigate to="/connexion?next=%2Fdashboard" replace />;
+  if (!user) {
+    // Session perdue en cours de route : on l'explique au lieu de renvoyer sans un mot.
+    return <Navigate to={sessionLost ? '/connexion?session=expiree&next=%2Fdashboard' : '/connexion?next=%2Fdashboard'} replace />;
+  }
 
   const response = dashboardQuery.data;
   const isAdmin = user.role === 'ADMIN' || user.role === 'SUPER_ADMIN';
@@ -223,12 +226,30 @@ function ClientDashboard({ data }: { data: DashboardResponse }) {
   const stats = data.statistics;
   const projectCount = stats.projects ?? data.projects.length;
   const unread = stats.unread_notifications ?? data.notifications.filter((item) => !item.is_read).length;
+  const activeProjects = data.projects.filter((project) => project.status === 'ACTIVE').length;
+  const completedProjects = data.projects.filter((project) => project.status === 'COMPLETED').length;
   return <>
-    <div className="client-stat-row client-stat-row-four">
-      <Link className="client-stat-card client-stat-link" to="/dashboard#client-projets"><span className="client-stat-icon stat-blue"><HardHat size={17} /></span><small>Projets suivis par KEMTA</small><strong>{projectCount}</strong></Link>
-      <div className="client-stat-card"><span className="client-stat-icon stat-green"><FileText size={17} /></span><small>Demandes envoyées</small><strong>{stats.service_requests ?? data.service_requests.length}</strong></div>
-      <div className="client-stat-card"><span className="client-stat-icon stat-sand"><Receipt size={17} /></span><small>Reçus disponibles</small><strong>{stats.receipts ?? 0}</strong></div>
-      <Link className="client-stat-card client-stat-link" to="/dashboard/notifications"><span className="client-stat-icon stat-blue"><Bell size={17} /></span><small>Notifications non lues</small><strong>{unread}</strong></Link>
+    <div className="kpi-row">
+      <Link className="kpi-card" to="/dashboard#client-projets">
+        <span className="kpi-head"><span className="kpi-icon stat-blue"><HardHat size={16} /></span><span className="kpi-label">Projets suivis par KEMTA</span></span>
+        <strong className="kpi-value">{projectCount}</strong>
+        <span className="kpi-foot"><House size={13} /> {activeProjects} en cours · {completedProjects} terminé{completedProjects === 1 ? '' : 's'}</span>
+      </Link>
+      <div className="kpi-card">
+        <span className="kpi-head"><span className="kpi-icon stat-green"><FileText size={16} /></span><span className="kpi-label">Demandes envoyées</span></span>
+        <strong className="kpi-value">{stats.service_requests ?? data.service_requests.length}</strong>
+        <span className="kpi-foot"><FileText size={13} /> {data.service_requests[0] ? `Dernière : ${data.service_requests[0].request_code}` : 'Aucune demande pour l’instant'}</span>
+      </div>
+      <div className="kpi-card">
+        <span className="kpi-head"><span className="kpi-icon stat-sand"><Receipt size={16} /></span><span className="kpi-label">Reçus disponibles</span></span>
+        <strong className="kpi-value">{stats.receipts ?? 0}</strong>
+        <span className="kpi-foot"><Receipt size={13} /> sur {stats.expenses ?? 0} dépense{(stats.expenses ?? 0) === 1 ? '' : 's'} enregistrée{(stats.expenses ?? 0) === 1 ? '' : 's'}</span>
+      </div>
+      <Link className="kpi-card" to="/dashboard/notifications">
+        <span className="kpi-head"><span className="kpi-icon stat-blue"><Bell size={16} /></span><span className="kpi-label">Notifications non lues</span></span>
+        <strong className="kpi-value">{unread}</strong>
+        <span className="kpi-foot"><Bell size={13} /> Journal des alertes de vos chantiers</span>
+      </Link>
     </div>
 
     {stats.budget_total && Number(stats.budget_total) > 0 && <div className="budget-strip">

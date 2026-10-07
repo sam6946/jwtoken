@@ -88,7 +88,7 @@ Codes de sortie utiles : `python manage.py test`, `npx tsc -b --force` et `npm r
 
 Les limites de production protègent les formulaires publics (`service_request` 10/heure, `auth_login` 10/minute, `otp` 5/heure). La recette automatisée enchaîne les envois et les atteint légitimement. En développement uniquement, `KEMTA_THROTTLE_FACTOR` multiplie ces seuils (`KEMTA_THROTTLE_FACTOR=30 python manage.py runserver`) ; la variable est ignorée en production, et `python manage.py clear_throttles` remet les compteurs à zéro sur le serveur courant (refusé si `DEBUG=False`).
 
-Les demandes de service créées par la recette sont supprimées par `python manage.py cleanup_test_requests` (le client n’a volontairement pas le droit de supprimer sa propre demande).
+Les demandes de service créées par la recette sont supprimées par `python manage.py cleanup_test_requests`, qui retire aussi leurs journaux d’audit (le client n’a volontairement pas le droit de supprimer sa propre demande, et ces traces resteraient visibles dans son espace).
 
 ## API principale
 

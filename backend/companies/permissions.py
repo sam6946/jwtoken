@@ -30,3 +30,13 @@ class PortfolioAccessPermission(BasePermission):
             or request.user.role in {UserRole.ADMIN, UserRole.SUPER_ADMIN}
             or obj.company.user_id == request.user.id
         )
+
+
+class CompanyVerificationAdminPermission(BasePermission):
+    """Réservé à l'équipe KEMTA : examen des dossiers de vérification."""
+
+    message = "Seule l’équipe KEMTA peut examiner les dossiers de vérification."
+
+    def has_permission(self, request, view) -> bool:
+        user = request.user
+        return bool(user.is_authenticated and (user.is_staff or user.role in {UserRole.ADMIN, UserRole.SUPER_ADMIN}))

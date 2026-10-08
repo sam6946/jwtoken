@@ -14,6 +14,7 @@ import {
   amount, dateLabel, projectStatusLabel, serviceLabels, serviceStatusLabel,
   evidenceStatusLabels, type EvidenceSummary, type Project,
 } from './dashboardData';
+import { AdminVerificationQueue } from './AdminVerificationQueue';
 
 type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'DONE' | 'BLOCKED';
 interface DashboardTask {
@@ -443,6 +444,8 @@ function AdminDashboard({ data }: { data: DashboardResponse }) {
         <p>Les actions d’administration sont journalisées et soumises aux permissions du compte.</p>
       </section>
     </div>
+
+    <AdminVerificationQueue />
 
     <div className="admin-columns">
       <section className="dashboard-section" id="admin-projets">

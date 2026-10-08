@@ -9,6 +9,7 @@ import { SiteHeader } from '../../components/SiteHeader';
 import { SiteFooter } from '../../components/SiteFooter';
 import { ApiError, apiRequest, jsonBody } from '../../lib/api';
 import { useAuth } from '../../lib/auth';
+import { verificationTones } from './companyVerification';
 
 interface CompanyProfile {
   id: number;
@@ -21,6 +22,9 @@ interface CompanyProfile {
   years_experience: number;
   verified: boolean;
   profile_completion: number;
+  verification_status: 'DRAFT' | 'PENDING' | 'UNDER_REVIEW' | 'VERIFIED' | 'REJECTED' | 'SUSPENDED';
+  verification_status_label: string;
+  verification_level_label: string;
   portfolio: PortfolioItem[];
 }
 interface PortfolioItem {
@@ -98,6 +102,13 @@ export function CompanyProfilePage() {
   if (!user) return <Navigate to="/connexion?next=%2Fentreprise%2Fcreer" replace />;
   if (user.role !== 'BTP_COMPANY') return <div className="access-denied"><ShieldCheck size={26} /><h1>Espace réservé aux entreprises</h1><p>Créez un compte KEMTA BTP pour présenter votre entreprise et vos réalisations.</p><Link className="button button-primary" to="/inscription?role=BTP_COMPANY">Créer un compte entreprise <ArrowRight size={16} /></Link></div>;
   const isExisting = Boolean(companyQuery.data);
+  const verification = companyQuery.data
+    ? {
+        status: companyQuery.data.verification_status,
+        label: companyQuery.data.verification_status_label,
+        level: companyQuery.data.verification_level_label,
+      }
+    : null;
 
   function update(key: keyof CompanyForm, value: string): void {
     setForm((current) => ({ ...current, [key]: value }));
@@ -105,6 +116,7 @@ export function CompanyProfilePage() {
   }
 
   return <><SiteHeader /><main className="company-edit-page"><div className="page-container company-edit-container"><Link to="/dashboard" className="back-to-home"><ArrowLeft size={15} /> Retour à mon espace</Link><div className="company-edit-heading"><span className="section-kicker">KEMTA BTP · Mon profil</span><h1>{isExisting ? 'Faites évoluer votre vitrine.' : 'Présentez votre entreprise.'}</h1><p>Donnez aux clients une vue claire de votre expertise, de vos services et de vos zones d’intervention.</p></div>
+    {verification && <p className={`company-verification-banner status-${verificationTones[verification.status]}`} role="status"><BadgeCheck size={16} /><span><strong>{verification.label}</strong><small>{verification.level}</small></span>{verification.status !== 'VERIFIED' && <Link to="/entreprise/verification">Suivre ma vérification <ArrowRight size={15} /></Link>}</p>}
     {companyQuery.isLoading && <div className="company-form-loading"><span /> Chargement du profil…</div>}
     {companyQuery.isError && !(companyQuery.error instanceof ApiError && companyQuery.error.status === 404) && <div className="form-error" role="alert">Impossible de charger les informations de l’entreprise. <button onClick={() => void companyQuery.refetch()}>Réessayer</button></div>}
     {(!companyQuery.isLoading && (!companyQuery.isError || (companyQuery.error instanceof ApiError && companyQuery.error.status === 404))) && <div className="company-form-layout"><form className="company-form" onSubmit={(event) => { event.preventDefault(); if (!form.name.trim() || !form.city.trim() || form.description.trim().length < 20) { setError('Renseignez le nom, la ville et une présentation d’au moins 20 caractères.'); return; } void saveMutation.mutate(); }}>

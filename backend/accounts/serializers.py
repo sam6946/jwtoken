@@ -43,6 +43,9 @@ class RegisterSerializer(serializers.Serializer):
     email = serializers.EmailField(required=False, allow_null=True, allow_blank=True)
     password = serializers.CharField(write_only=True, min_length=10, max_length=128, trim_whitespace=False)
     role = serializers.ChoiceField(choices=(UserRole.CUSTOMER, UserRole.BTP_COMPANY), default=UserRole.CUSTOMER)
+    # Parcours entreprise : nom saisi à l'étape 1, utilisé pour créer le profil
+    # (les informations légales et les documents viennent aux étapes suivantes).
+    company_name = serializers.CharField(max_length=140, required=False, allow_blank=True, write_only=True)
     terms_accepted = serializers.BooleanField(write_only=True)
 
     def validate_phone(self, value: str) -> str:
@@ -60,9 +63,17 @@ class RegisterSerializer(serializers.Serializer):
             raise serializers.ValidationError("Vous devez accepter les conditions d’utilisation.")
         return value
 
+    def validate_company_name(self, value: str) -> str:
+        cleaned = (value or "").strip()
+        if cleaned and len(cleaned) < 2:
+            raise serializers.ValidationError("Indiquez le nom de votre entreprise.")
+        return cleaned
+
     def validate(self, attrs):
         if User.objects.filter(phone=attrs["phone"]).exists():
             raise serializers.ValidationError({"phone": "Un compte est déjà associé à ce numéro."})
+        if attrs.get("company_name") and attrs.get("role") != UserRole.BTP_COMPANY:
+            raise serializers.ValidationError({"company_name": "Le nom d’entreprise est réservé aux comptes entreprise."})
         return attrs
 
     @transaction.atomic
@@ -73,12 +84,18 @@ class RegisterSerializer(serializers.Serializer):
             raise serializers.ValidationError({"verification_token": "Le numéro vérifié ne correspond pas."})
         password = validated_data.pop("password")
         validated_data.pop("terms_accepted")
+        company_name = validated_data.pop("company_name", "")
         email = validated_data.pop("email", None) or None
         user = User.objects.create_user(phone=phone, password=password, email=email, **validated_data)
         user.phone_verified = True
         user.terms_accepted_at = timezone.now()
         user.save(update_fields=("phone_verified", "terms_accepted_at", "updated_at"))
         write_audit_event(event="account.registered", actor=user, object_type="user", object_id=user.pk)
+        if company_name and user.role == UserRole.BTP_COMPANY:
+            # Import local : évite de coupler l'application accounts au chargement.
+            from companies.models import CompanyProfile
+
+            CompanyProfile.objects.create(user=user, name=company_name, email=email or "")
         return user
 
 

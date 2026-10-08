@@ -194,6 +194,15 @@ def _activity_description(event: AuditLog) -> str:
         "application.submitted": "Une candidature a été envoyée.",
         "application.status_changed": "Le statut d’une candidature a évolué.",
         "company.profile_saved": "Le profil entreprise a été enregistré.",
+        "company.document_uploaded": "Une pièce du dossier entreprise a été ajoutée.",
+        "company.verification_submitted": "Le dossier de vérification a été envoyé à KEMTA.",
+        "company.review_started": "L’équipe KEMTA a pris en charge un dossier de vérification.",
+        "company.verified": "L’entreprise a été vérifiée par KEMTA.",
+        "company.verification_rejected": "Un dossier de vérification a été refusé.",
+        "company.correction_requested": "Une correction a été demandée sur un dossier entreprise.",
+        "company.document_approved": "Une pièce du dossier entreprise a été validée.",
+        "company.document_rejected": "Une pièce du dossier entreprise a été refusée.",
+        "company.suspended": "La vérification d’une entreprise a été suspendue.",
         "account.password_reset": "Le mot de passe du compte a été modifié.",
     }
     return messages.get(event.event, "Une activité a été enregistrée dans KEMTA.")

@@ -9,6 +9,7 @@ import { ProjectDetailPage } from './features/client/ProjectDetailPage';
 import { NotificationsPage } from './features/client/NotificationsPage';
 import { OpportunitiesPage } from './features/btp/OpportunitiesPage';
 import { CompanyProfilePage, CompanyPublicPage } from './features/btp/CompanyPages';
+import { CompanyDocumentsPage, CompanyProfileSetupPage, CompanyVerificationStatusPage } from './features/btp/CompanySetupPages';
 import { CompaniesCatalogPage } from './features/btp/CompaniesCatalogPage';
 import { LegalPage } from './pages/LegalPage';
 
@@ -27,6 +28,9 @@ export function App() {
     <Route path="/entreprises-btp" element={<CompaniesCatalogPage />} />
     <Route path="/entreprise/creer" element={<CompanyProfilePage />} />
     <Route path="/entreprise/modifier" element={<CompanyProfilePage />} />
+    <Route path="/entreprise/profil" element={<CompanyProfileSetupPage />} />
+    <Route path="/entreprise/documents" element={<CompanyDocumentsPage />} />
+    <Route path="/entreprise/verification" element={<CompanyVerificationStatusPage />} />
     <Route path="/entreprises/:slug" element={<CompanyPublicPage />} />
     <Route path="/mentions-legales" element={<LegalPage />} />
     <Route path="/confidentialite" element={<LegalPage />} />

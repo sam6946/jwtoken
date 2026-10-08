@@ -1529,3 +1529,116 @@ a.kpi-card:hover { border-color: #b9cdd4; box-shadow: 0 12px 30px rgba(6, 50, 69
 .auth-session-note strong {
   color: #5f4614;
 }
+
+/* ------------------------------------------------------------------ */
+/* Parcours de vérification des entreprises (comptes BTP)              */
+/* ------------------------------------------------------------------ */
+
+.company-setup-page { padding: 34px 0 64px; background: #f5f8f7; }
+.company-setup-container { max-width: 880px; }
+.company-setup-container .company-edit-heading { margin-bottom: 22px; }
+.setup-progress { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 24px; padding: 0; list-style: none; }
+.setup-progress-step { display: inline-flex; align-items: center; gap: 8px; padding: 8px 13px; border: 1px solid #dfe7e6; border-radius: 40px; color: #7b8b90; background: #fff; font-size: 10px; font-weight: 600; }
+.setup-progress-step.is-current { border-color: var(--green); color: var(--blue-dark); background: #eefaf1; }
+.setup-progress-step.is-done { border-color: #cfe6d6; color: #2c7448; background: #f4fbf6; }
+.setup-progress-index { width: 21px; height: 21px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; color: #7b8b90; background: #eef2f2; font-size: 9px; font-weight: 700; }
+.setup-progress-step.is-current .setup-progress-index { color: #fff; background: var(--green); }
+.setup-progress-step.is-done .setup-progress-index { color: #fff; background: #4f9a6d; }
+.setup-note { display: flex; align-items: flex-start; gap: 8px; margin: 14px 0 0; color: #6c7f85; font-size: 10px; line-height: 1.6; }
+.setup-note svg { flex-shrink: 0; margin-top: 2px; color: var(--blue); }
+.setup-legal-note { display: flex; align-items: flex-start; gap: 8px; margin: 16px 0 0; color: #7c8c91; font-size: 9px; line-height: 1.6; }
+.setup-legal-note svg { flex-shrink: 0; margin-top: 2px; color: var(--green-dark); }
+.company-setup-actions { flex-wrap: wrap; }
+.spin { animation: spin .8s linear infinite; }
+.button-danger { color: #fff; background: #b04a41; border-color: #b04a41; }
+.button-danger:hover { background: #9c3f37; border-color: #9c3f37; }
+
+/* Pièces justificatives */
+.document-checklist { display: flex; flex-direction: column; gap: 10px; }
+.document-check-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 15px 16px; border: 1px solid #e4eaeb; border-radius: 7px; background: #fff; }
+.document-check-row.is-added { border-color: #d6e9dd; background: #fbfefc; }
+.document-check-main { display: flex; flex: 1 1 260px; align-items: flex-start; gap: 11px; min-width: 0; }
+.document-check-icon { width: 31px; height: 31px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; border-radius: 50%; color: #8b9b9f; background: #f1f4f4; }
+.document-check-row.is-added .document-check-icon { color: #2c7448; background: #e8f6ed; }
+.document-check-main h3 { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 4px; color: var(--blue-dark); font-family: 'Manrope', sans-serif; font-size: 11px; }
+.document-required, .document-optional { padding: 2px 6px; border-radius: 3px; font-size: 8px; font-style: normal; font-weight: 600; }
+.document-required { color: #8a5a1c; background: #fbf2e3; }
+.document-optional { color: #6e7f84; background: #f0f3f3; }
+.document-check-hint { margin: 0; color: #7f8f94; font-size: 9px; line-height: 1.6; }
+.document-check-file { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; margin: 0; color: #2f6b4b; font-size: 9px; }
+.document-check-file svg { color: var(--green); }
+.document-check-file span { color: #7f8f94; overflow-wrap: anywhere; }
+.document-check-reason { display: flex; align-items: flex-start; gap: 6px; margin: 7px 0 0; color: #9e433b; font-size: 9px; line-height: 1.55; }
+.document-actions { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.document-summary { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; margin-top: 20px; padding: 18px; border: 1px solid #e0eae5; border-radius: 7px; background: #f6fbf7; }
+.document-summary h2 { margin: 4px 0 6px; color: var(--blue-dark); font-family: 'Manrope', sans-serif; font-size: 15px; }
+.document-summary p { display: flex; align-items: center; gap: 6px; margin: 4px 0 0; color: #6f8085; font-size: 9px; line-height: 1.6; }
+.document-summary p a { font-weight: 700; text-decoration: underline; }
+
+/* Suivi de la vérification */
+.verification-hero { display: flex; flex-wrap: wrap; align-items: center; gap: 15px; padding: 20px; border: 1px solid #e2eaec; border-left: 4px solid #c8b06a; border-radius: 7px; background: #fff; }
+.verification-hero.is-verified { border-left-color: var(--green); background: #f7fdf9; }
+.verification-hero.is-rejected, .verification-hero.is-suspended { border-left-color: #bb4b43; background: #fffafa; }
+.verification-hero-icon { width: 47px; height: 47px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; border-radius: 50%; color: #8a6b25; background: #f8f3e6; }
+.verification-hero.is-verified .verification-hero-icon { color: #2c7448; background: #e8f6ed; }
+.verification-hero.is-rejected .verification-hero-icon, .verification-hero.is-suspended .verification-hero-icon { color: #9e433b; background: #fdeeec; }
+.verification-hero > div { flex: 1 1 240px; min-width: 0; }
+.verification-hero h2 { margin: 4px 0 6px; color: var(--blue-dark); font-family: 'Manrope', sans-serif; font-size: 18px; }
+.verification-hero p { margin: 0; color: #6f8085; font-size: 10px; line-height: 1.65; }
+.verification-reason { display: flex; align-items: flex-start; gap: 11px; margin-top: 14px; padding: 15px 16px; border: 1px solid #f0d6d3; border-radius: 7px; color: #8c3d36; background: #fff6f5; }
+.verification-reason > svg { flex-shrink: 0; margin-top: 2px; }
+.verification-reason strong { display: block; font-size: 10px; }
+.verification-reason p { margin: 5px 0 0; font-size: 9px; line-height: 1.6; }
+.verification-reason-list { color: #9e433b; }
+.verification-reason .button { margin-top: 11px; }
+.verification-timeline { display: flex; flex-direction: column; margin: 20px 0 0; padding: 0; border: 1px solid #e5ebec; border-radius: 7px; background: #fff; list-style: none; }
+.verification-step { display: flex; align-items: center; gap: 12px; padding: 13px 16px; border-top: 1px solid #eff2f2; }
+.verification-step:first-child { border-top: 0; }
+.verification-step-icon { display: inline-flex; color: #9aa8ac; }
+.verification-step.is-done .verification-step-icon { color: var(--green); }
+.verification-step.is-in_review .verification-step-icon { color: #b98d29; }
+.verification-step.is-rejected .verification-step-icon { color: #bb4b43; }
+.verification-step-label { flex: 1; color: #36515d; font-size: 10px; font-weight: 600; }
+.verification-step-state { color: #8b999d; font-size: 9px; font-weight: 600; }
+.verification-levels { margin-top: 20px; padding: 19px; border: 1px solid #e5ebec; border-radius: 7px; background: #fff; }
+.verification-level-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.verification-level { display: flex; align-items: center; gap: 8px; padding: 11px 13px; border: 1px solid #e6ecec; border-radius: 6px; color: #85979b; background: #fafcfc; font-size: 9px; }
+.verification-level.is-reached { border-color: #cfe6d6; color: #2c7448; background: #f4fbf6; }
+.verification-next { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; margin-top: 18px; padding: 16px 18px; border: 1px solid #dfe7e6; border-radius: 7px; background: #fff; }
+.verification-next p { margin: 0; color: #6f8085; font-size: 10px; }
+.verification-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+
+/* File d'attente d'administration */
+.verification-queue-item { border-top: 1px solid #eff2f2; }
+.verification-queue-item:first-child { border-top: 0; }
+.verification-queue-item .mini-row { border-top: 0; cursor: default; }
+.verification-review-panel { display: flex; flex-direction: column; gap: 16px; margin: 0 0 14px; padding: 16px; border: 1px solid #e4ece9; border-radius: 7px; background: #f9fcfb; }
+.verification-review-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+.verification-review-facts small { display: block; color: #8b999d; font-size: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+.verification-review-facts strong { display: block; margin-top: 3px; color: #36515d; font-size: 9px; font-weight: 600; overflow-wrap: anywhere; }
+.verification-review-documents h3 { display: flex; align-items: center; gap: 7px; margin: 0 0 10px; color: var(--blue-dark); font-family: 'Manrope', sans-serif; font-size: 11px; }
+.verification-review-documents ul { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.verification-review-documents li { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid #e7edec; border-radius: 6px; background: #fff; }
+.verification-review-document { flex: 1 1 200px; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.verification-review-document strong { color: #36515d; font-size: 9px; }
+.verification-review-document small { color: #879599; font-size: 8px; overflow-wrap: anywhere; }
+.verification-review-document em { display: inline-flex; align-items: center; gap: 5px; color: #9e433b; font-size: 8px; font-style: normal; }
+.verification-review-decision { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; padding-top: 4px; }
+.verification-review-decision .field { flex: 1 1 220px; min-width: 0; }
+.verification-review-decision .field-full { flex: 1 1 100%; }
+.verification-review-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; width: 100%; }
+
+@media (max-width: 720px) {
+  .company-setup-container { max-width: none; }
+  .document-check-row { align-items: flex-start; }
+  .document-actions { width: 100%; justify-content: flex-start; }
+  .document-summary, .verification-next { flex-direction: column; align-items: stretch; }
+  .verification-hero > .status-badge { align-self: flex-start; }
+}
+
+/* État de vérification affiché sur la vitrine de l'entreprise */
+.company-verification-banner { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 16px 0 0; padding: 12px 15px; border-radius: 6px; font-size: 10px; font-weight: 600; }
+.company-verification-banner svg { flex-shrink: 0; }
+.company-verification-banner > span { display: flex; flex-direction: column; gap: 2px; flex: 1 1 160px; }
+.company-verification-banner small { font-size: 8px; font-weight: 500; opacity: .8; }
+.company-verification-banner a { display: inline-flex; align-items: center; gap: 5px; color: inherit; font-size: 9px; font-weight: 700; text-decoration: underline; }

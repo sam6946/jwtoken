@@ -4,7 +4,17 @@ from django.contrib import admin
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from companies.views import CompanyMeAPIView, CompanyProfileViewSet, PortfolioItemViewSet
+from companies.views import (
+    CompanyDocumentFileAPIView,
+    CompanyMeAPIView,
+    CompanyMeDocumentsAPIView,
+    CompanyProfileViewSet,
+    CompanyVerificationAPIView,
+    CompanyVerificationDecisionAPIView,
+    CompanyVerificationQueueAPIView,
+    CompanyVerificationSubmitAPIView,
+    PortfolioItemViewSet,
+)
 from dashboard.diagnostics import ClientDiagnosticAPIView
 from dashboard.views import DashboardAPIView
 from notifications.views import NotificationViewSet
@@ -38,6 +48,13 @@ urlpatterns = [
     path("health/ready/", readiness, name="health-ready"),
     path("api/v1/auth/", include("accounts.urls")),
     path("api/v1/companies/me/", CompanyMeAPIView.as_view(), name="company-me"),
+    # Parcours de vérification d'entreprise : déclaré avant le routeur du catalogue.
+    path("api/v1/companies/me/documents/", CompanyMeDocumentsAPIView.as_view(), name="company-me-documents"),
+    path("api/v1/companies/me/documents/<int:pk>/file/", CompanyDocumentFileAPIView.as_view(), name="company-document-file"),
+    path("api/v1/companies/me/verification/", CompanyVerificationAPIView.as_view(), name="company-verification"),
+    path("api/v1/companies/me/verification/submit/", CompanyVerificationSubmitAPIView.as_view(), name="company-verification-submit"),
+    path("api/v1/companies/verification/queue/", CompanyVerificationQueueAPIView.as_view(), name="company-verification-queue"),
+    path("api/v1/companies/<int:pk>/verification/", CompanyVerificationDecisionAPIView.as_view(), name="company-verification-decision"),
     path("api/v1/dashboard/", DashboardAPIView.as_view(), name="dashboard"),
     path("api/v1/diagnostics/client/", ClientDiagnosticAPIView.as_view(), name="client-diagnostic"),
     path("api/v1/", include(router.urls)),

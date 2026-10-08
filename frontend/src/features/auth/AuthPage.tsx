@@ -16,7 +16,7 @@ interface AuthResponse { access: string; refresh?: string; user: KemtaUser }
 interface OtpRequestResponse { detail: string; expires_in: number; debug_code?: string }
 interface OtpVerifyResponse { verification_token: string; phone: string }
 
-const countryCallingCodes = [
+export const countryCallingCodes = [
   { code: '237', label: '🇨🇲 +237' }, { code: '225', label: '🇨🇮 +225' },
   { code: '221', label: '🇸🇳 +221' }, { code: '241', label: '🇬🇦 +241' },
   { code: '242', label: '🇨🇬 +242' }, { code: '234', label: '🇳🇬 +234' },
@@ -27,18 +27,18 @@ const countryCallingCodes = [
   { code: '971', label: '🇦🇪 +971' },
 ];
 
-function normalizePhoneInput(value: string): string {
+export function normalizePhoneInput(value: string): string {
   return value.replace(/\D/g, '').slice(0, 12);
 }
 
-function isValidPhoneNumber(value: string, dialingCode: string): boolean {
+export function isValidPhoneNumber(value: string, dialingCode: string): boolean {
   if (dialingCode === '237') return /^[2368]\d{8}$/.test(value);
   return value.length + dialingCode.length >= 8
     && value.length + dialingCode.length <= 15
     && /^[1-9]\d*$/.test(value.replace(/^0+/, ''));
 }
 
-function phoneForApi(value: string, dialingCode: string): string {
+export function phoneForApi(value: string, dialingCode: string): string {
   const localNumber = normalizePhoneInput(value);
   const significantNumber = dialingCode === '237' ? localNumber : localNumber.replace(/^0+/, '');
   return `+${dialingCode}${significantNumber}`;
@@ -51,7 +51,7 @@ interface PhoneNumberInputProps {
   onDialingCodeChange: (code: string) => void;
 }
 
-function PhoneNumberInput({ value, dialingCode, onValueChange, onDialingCodeChange }: PhoneNumberInputProps) {
+export function PhoneNumberInput({ value, dialingCode, onValueChange, onDialingCodeChange }: PhoneNumberInputProps) {
   return <div className="phone-field auth-phone-field"><select className="phone-prefix phone-code-select" aria-label="Indicatif téléphonique" value={dialingCode} onChange={(event) => onDialingCodeChange(event.target.value)}>{countryCallingCodes.map(({ code, label }) => <option key={code} value={code}>{label}</option>)}</select><input aria-label="Numéro de téléphone sans indicatif" autoComplete="tel-national" inputMode="tel" value={value} onChange={(event) => onValueChange(normalizePhoneInput(event.target.value))} placeholder={dialingCode === '237' ? '6 XX XX XX XX' : 'Numéro sans indicatif'} maxLength={12} /></div>;
 }
 
@@ -79,6 +79,7 @@ export function AuthPage() {
   const [dialingCode, setDialingCode] = useState('237');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [companyName, setCompanyName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -117,13 +118,14 @@ export function AuthPage() {
     setOtpSent(false);
     setOtpToken('');
     setDebugCode('');
+    setCompanyName('');
   }, [location.pathname]);
 
   const currentTitle = useMemo(() => {
     if (mode === 'register') {
       if (registerStep === 'phone') return isBtpSignup ? 'Créez votre espace entreprise.' : 'Votre projet commence ici.';
       if (registerStep === 'otp') return 'Vérifions votre numéro.';
-      return 'Quelques informations et c’est prêt.';
+      return isBtpSignup ? 'Votre entreprise, en quelques informations.' : 'Quelques informations et c’est prêt.';
     }
     if (mode === 'reset') return otpFlow === 'reset' && otpToken ? 'Choisissez un nouveau mot de passe.' : otpFlow === 'reset' ? 'Entrez le code reçu.' : 'Réinitialisez votre mot de passe.';
     if (loginMethod === 'otp' && otpFlow === 'login') return otpToken ? 'Connexion confirmée.' : 'Entrez le code reçu.';
@@ -206,6 +208,7 @@ export function AuthPage() {
     event.preventDefault();
     if (!otpToken) { setError('Vérifiez votre numéro avant de créer le compte.'); setRegisterStep('phone'); return; }
     if (!firstName.trim() || !lastName.trim()) { setError('Renseignez votre prénom et votre nom.'); return; }
+    if (isBtpSignup && companyName.trim().length < 2) { setError('Renseignez le nom de votre entreprise.'); return; }
     if (password.length < 10) { setError('Utilisez un mot de passe d’au moins 10 caractères.'); return; }
     if (password !== confirmPassword) { setError('Les deux mots de passe ne correspondent pas.'); return; }
     setIsBusy(true);
@@ -222,10 +225,12 @@ export function AuthPage() {
           password,
           role: requestedRole,
           terms_accepted: true,
+          ...(isBtpSignup ? { company_name: companyName.trim() } : {}),
         }),
       });
       establishSession(response.access, response.user, response.refresh);
-      navigate(redirectTo, { replace: true });
+      // Un compte entreprise enchaîne sur son dossier de vérification.
+      navigate(isBtpSignup ? '/entreprise/profil' : redirectTo, { replace: true });
     } catch (caught) {
       setError(getMessage(caught));
     } finally {
@@ -332,7 +337,8 @@ export function AuthPage() {
             {registerStep === 'otp' && <div className="otp-screen"><div className="otp-phone-summary"><span className="otp-phone-icon"><Smartphone size={19} /></span><span>Code envoyé au <strong>{phoneForApi(phone, dialingCode)}</strong></span><button type="button" onClick={() => { setRegisterStep('phone'); setError(''); }}>Modifier</button></div><OtpInput value={otp} onChange={setOtp} /><p className="otp-hint">Saisissez les 6 chiffres du SMS reçu.</p>{debugCode && <p className="dev-code"><KeyRound size={14} /> Code de test local : <strong>{debugCode}</strong></p>}{notice && <p className="form-notice" role="status">{notice}</p>}<div className="otp-actions-row"><button type="button" className="auth-text-button" disabled={secondsLeft > 0 || isBusy} onClick={() => void requestOtp('REGISTER')}>{secondsLeft > 0 ? `Renvoyer dans ${secondsLeft}s` : 'Renvoyer le code'}</button><span>Le code expire dans quelques minutes.</span></div><button type="button" className="button button-primary auth-submit" onClick={() => void verifyOtp('REGISTER')} disabled={isBusy}>{isBusy ? 'Vérification…' : 'Vérifier mon numéro'} <ArrowRight size={16} /></button></div>}
             {registerStep === 'profile' && <form onSubmit={(event) => void submitRegistration(event)}>
               <div className="verified-banner"><CheckCircle2 size={17} /><span><strong>Numéro vérifié</strong><small>{phoneForApi(phone, dialingCode)}</small></span><Check size={15} /></div>
-              <div className="form-grid form-grid-two auth-profile-grid"><label className="field"><span>Prénom</span><input autoComplete="given-name" value={firstName} onChange={(event) => setFirstName(event.target.value)} placeholder="Votre prénom" /></label><label className="field"><span>Nom</span><input autoComplete="family-name" value={lastName} onChange={(event) => setLastName(event.target.value)} placeholder="Votre nom" /></label><label className="field field-full"><span>Email <small>(facultatif)</small></span><input autoComplete="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="vous@exemple.com" /></label><label className="field field-full"><span>Mot de passe</span><div className="password-field"><input autoComplete="new-password" type={showPassword ? 'text' : 'password'} value={password} onChange={(event) => setPassword(event.target.value)} placeholder="10 caractères minimum" /><button type="button" aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'} onClick={() => setShowPassword((visible) => !visible)}>{showPassword ? <EyeOff size={17} /> : <Eye size={17} />}</button></div></label><label className="field field-full"><span>Confirmer le mot de passe</span><div className="password-field"><input autoComplete="new-password" type={showConfirmation ? 'text' : 'password'} value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} placeholder="Répétez le mot de passe" /><button type="button" aria-label={showConfirmation ? 'Masquer la confirmation' : 'Afficher la confirmation'} onClick={() => setShowConfirmation((visible) => !visible)}>{showConfirmation ? <EyeOff size={17} /> : <Eye size={17} />}</button></div></label></div>
+              {isBtpSignup && <label className="field auth-field"><span>Nom de l’entreprise <b>*</b></span><input autoComplete="organization" value={companyName} onChange={(event) => setCompanyName(event.target.value)} placeholder="Ex. Bâtir & Rénover SARL" maxLength={140} /><small>Il s’agit du nom commercial affiché sur votre profil.</small></label>}
+              <div className="form-grid form-grid-two auth-profile-grid"><label className="field"><span>Prénom</span><input autoComplete="given-name" value={firstName} onChange={(event) => setFirstName(event.target.value)} placeholder="Votre prénom" /></label><label className="field"><span>Nom</span><input autoComplete="family-name" value={lastName} onChange={(event) => setLastName(event.target.value)} placeholder="Votre nom" /></label><label className="field field-full"><span>{isBtpSignup ? 'Email professionnel' : 'Email'} <small>(facultatif)</small></span><input autoComplete="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="vous@exemple.com" /></label><label className="field field-full"><span>Mot de passe</span><div className="password-field"><input autoComplete="new-password" type={showPassword ? 'text' : 'password'} value={password} onChange={(event) => setPassword(event.target.value)} placeholder="10 caractères minimum" /><button type="button" aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'} onClick={() => setShowPassword((visible) => !visible)}>{showPassword ? <EyeOff size={17} /> : <Eye size={17} />}</button></div></label><label className="field field-full"><span>Confirmer le mot de passe</span><div className="password-field"><input autoComplete="new-password" type={showConfirmation ? 'text' : 'password'} value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} placeholder="Répétez le mot de passe" /><button type="button" aria-label={showConfirmation ? 'Masquer la confirmation' : 'Afficher la confirmation'} onClick={() => setShowConfirmation((visible) => !visible)}>{showConfirmation ? <EyeOff size={17} /> : <Eye size={17} />}</button></div></label></div>
               <label className="terms-check"><input type="checkbox" required /> <span>J’accepte les <Link to="/conditions">conditions d’utilisation</Link> et la politique de confidentialité de KEMTA.</span></label>
               <button className="button button-primary auth-submit" type="submit" disabled={isBusy}>{isBusy ? 'Création du compte…' : isBtpSignup ? 'Créer mon compte entreprise' : 'Créer mon compte'} <ArrowRight size={16} /></button>
             </form>}
@@ -355,6 +361,6 @@ export function AuthPage() {
   );
 }
 
-function OtpInput({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+export function OtpInput({ value, onChange }: { value: string; onChange: (value: string) => void }) {
   return <div className="otp-input-group"><label htmlFor="otp-code">Code à 6 chiffres</label><input id="otp-code" className="otp-code-input" autoComplete="one-time-code" inputMode="numeric" pattern="[0-9]*" maxLength={6} value={value} onChange={(event) => onChange(event.target.value.replace(/\D/g, '').slice(0, 6))} onPaste={(event) => { const pasted = event.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6); if (pasted) { event.preventDefault(); onChange(pasted); } }} placeholder="••••••" aria-describedby="otp-helper" /><span id="otp-helper" className="sr-only">Saisissez ou collez les six chiffres du code de vérification.</span><span className="otp-boxes" aria-hidden="true">{Array.from({ length: 6 }, (_, index) => <i className={index < value.length ? 'otp-box-filled' : ''} key={index}>{value[index] ?? ''}</i>)}</span></div>;
 }

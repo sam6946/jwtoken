@@ -1,27 +1,22 @@
 /** Orchestration du dashboard : session, chargement et choix de la vue par rôle. */
-import { useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { CircleAlert, Info, Plus } from 'lucide-react';
-import { ApiError, apiRequest, jsonBody } from '../../lib/api';
+import { ApiError, apiRequest } from '../../lib/api';
 import { useAuth } from '../../lib/auth';
 import { DashboardShell } from './DashboardShell';
+import { FieldOperationsDashboard } from '../field-work/FieldOperations';
 import {
   AdminDashboard,
   BtpDashboard,
   ClientDashboard,
   DashboardSkeleton,
-  FieldAgentDashboard,
-  ManagerDashboard,
 } from './DashboardRoleViews';
-import { type DashboardResponse, type TaskStatus } from './dashboardTypes';
+import { type DashboardResponse } from './dashboardTypes';
 
 export function DashboardPage() {
   const { user, isReady, signOut, sessionLost } = useAuth();
-  const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const [busyTaskId, setBusyTaskId] = useState<number | null>(null);
-  const [taskError, setTaskError] = useState<string | null>(null);
   const dashboardQuery = useQuery({
     queryKey: ['dashboard', user?.id],
     // Le jeton est appliqué par le client API lui-même : une seule source de vérité.
@@ -32,18 +27,7 @@ export function DashboardPage() {
   });
   const sessionExpired = dashboardQuery.error instanceof ApiError && dashboardQuery.error.status === 401;
 
-  async function updateTaskStatus(taskId: number, status: TaskStatus): Promise<void> {
-    setBusyTaskId(taskId);
-    setTaskError(null);
-    try {
-      await apiRequest(`/project-tasks/${taskId}/`, { method: 'PATCH', body: jsonBody({ status }) });
-      await queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-    } catch (error) {
-      setTaskError(error instanceof ApiError ? error.message : 'La mise à jour de la tâche a échoué. Réessayez.');
-    } finally {
-      setBusyTaskId(null);
-    }
-  }
+
 
   if (!isReady) return <div className="app-loading"><span className="loading-mark" /><p>Préparation de votre espace…</p></div>;
   if (!user) {
@@ -82,15 +66,14 @@ export function DashboardPage() {
         ? <div className="dashboard-error"><CircleAlert size={22} /><div><strong>Votre session a expiré.</strong><p>Reconnectez-vous pour retrouver votre espace : aucune donnée n’a été perdue.</p><button className="button button-primary button-small" onClick={() => void handleSignOut()}>Se reconnecter</button></div></div>
         : <div className="dashboard-error"><CircleAlert size={22} /><div><strong>Votre espace ne peut pas être chargé.</strong><p>{dashboardQuery.error instanceof ApiError ? dashboardQuery.error.message : 'Vérifiez votre connexion puis réessayez.'}</p><button className="button button-outline button-small" onClick={() => void dashboardQuery.refetch()}>Réessayer</button></div></div>)}
       {response?.is_demo && <div className="demo-banner"><Info size={17} /><span><strong>Environnement de démonstration.</strong> Les comptes, projets, entreprises et candidatures affichés ici sont fictifs et servent uniquement à présenter la plateforme. Aucune donnée réelle n’est utilisée.</span></div>}
-      {taskError && <div className="dashboard-alert"><CircleAlert size={17} /><span>{taskError}</span></div>}
       {response && (isAdmin
         ? <AdminDashboard data={response} />
         : isBtp
           ? <BtpDashboard data={response} />
           : isManager
-            ? <ManagerDashboard data={response} busyTaskId={busyTaskId} onTaskStatus={updateTaskStatus} />
+            ? <FieldOperationsDashboard manager />
             : isFieldAgent
-              ? <FieldAgentDashboard data={response} busyTaskId={busyTaskId} onTaskStatus={updateTaskStatus} />
+              ? <FieldOperationsDashboard manager={false} />
               : <ClientDashboard data={response} />)}
     </DashboardShell>
   );

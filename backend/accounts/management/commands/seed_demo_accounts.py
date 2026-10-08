@@ -14,7 +14,13 @@ from opportunities.models import Application, ApplicationStatus, Opportunity, Op
 from projects.models import (
     ExpenseCategory,
     ExpenseStatus,
+    FieldMission,
+    FieldReport,
+    FieldReportStatus,
+    MissionStatus,
+    MissionType,
     PhaseStatus,
+    ProjectAssignment,
     Project,
     ProjectExpense,
     ProjectPhase,
@@ -256,6 +262,12 @@ class Command(BaseCommand):
         project.current_phase = "Murs & structure"
         project.save(update_fields=("manager", "progress", "current_phase", "updated_at"))
         project.field_agents.add(users[UserRole.FIELD_AGENT])
+        ProjectAssignment.objects.update_or_create(
+            project=project,
+            user=users[UserRole.FIELD_AGENT],
+            role=ProjectAssignment.Role.FIELD_AGENT,
+            defaults={"status": "ACTIVE", "assigned_by": users[UserRole.PROJECT_MANAGER]},
+        )
 
         phases = (
             (1, "DÉMO — Étude & préparation", PhaseStatus.COMPLETED),
@@ -303,6 +315,49 @@ class Command(BaseCommand):
                 "description": "Tâche de démonstration : confirmer le prochain point de suivi.",
                 "status": ProjectTask.Status.TODO,
                 "due_date": timezone.localdate() + timedelta(days=3),
+            },
+        )
+        active_mission, _ = FieldMission.objects.update_or_create(
+            project=project,
+            title="DÉMO — Contrôle structure du jour",
+            defaults={
+                "phase": phase_objects[3],
+                "assigned_to": users[UserRole.FIELD_AGENT],
+                "created_by": users[UserRole.PROJECT_MANAGER],
+                "mission_type": MissionType.PROGRESS_CHECK,
+                "status": MissionStatus.IN_PROGRESS,
+                "scheduled_start": timezone.now(),
+                "location": "Chantier Bonapriso, Douala",
+                "instructions": "[DÉMO] Vérifier les murs porteurs et joindre les constats photo.",
+                "checklist": [
+                    {"id": "structure", "label": "Contrôler les murs porteurs", "required": True},
+                    {"id": "safety", "label": "Observer les protections de chantier", "required": True},
+                ],
+            },
+        )
+        review_mission, _ = FieldMission.objects.update_or_create(
+            project=project,
+            title="DÉMO — Visite qualité fondations",
+            defaults={
+                "phase": phase_objects[2],
+                "assigned_to": users[UserRole.FIELD_AGENT],
+                "created_by": users[UserRole.PROJECT_MANAGER],
+                "mission_type": MissionType.QUALITY_CONTROL,
+                "status": MissionStatus.SUBMITTED,
+                "scheduled_start": timezone.now() - timedelta(days=1),
+                "location": "Chantier Bonapriso, Douala",
+                "checklist": [],
+            },
+        )
+        FieldReport.objects.update_or_create(
+            mission=review_mission,
+            defaults={
+                "submitted_by": users[UserRole.FIELD_AGENT],
+                "summary": "[DÉMO] Contrôle fondations effectué, rapport en attente de validation.",
+                "observations": "Aucune anomalie critique observée.",
+                "progress_percentage": 42,
+                "status": FieldReportStatus.SUBMITTED,
+                "submitted_at": timezone.now() - timedelta(hours=2),
             },
         )
 
@@ -400,6 +455,12 @@ class Command(BaseCommand):
         delivered.budget_spent = Decimal("17400000")
         delivered.save()
         delivered.field_agents.add(users[UserRole.FIELD_AGENT])
+        ProjectAssignment.objects.update_or_create(
+            project=delivered,
+            user=users[UserRole.FIELD_AGENT],
+            role=ProjectAssignment.Role.FIELD_AGENT,
+            defaults={"status": "ACTIVE", "assigned_by": users[UserRole.PROJECT_MANAGER]},
+        )
         for position, name in enumerate(
             ("DÉMO — Étude & préparation", "DÉMO — Gros œuvre", "DÉMO — Livraison"), start=1
         ):

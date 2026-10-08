@@ -16,6 +16,10 @@ DEFAULT_ROLE_GRANTS = {
     UserRole.FIELD_AGENT: (
         KemtaPermission.VIEW_PROJECT,
         KemtaPermission.UPLOAD_EVIDENCE,
+        KemtaPermission.VIEW_ASSIGNED_MISSION,
+        KemtaPermission.EXECUTE_ASSIGNED_MISSION,
+        KemtaPermission.SUBMIT_FIELD_REPORT,
+        KemtaPermission.REPORT_PROJECT_ISSUE,
     ),
     UserRole.PROJECT_MANAGER: (
         KemtaPermission.VIEW_PROJECT,
@@ -28,6 +32,11 @@ DEFAULT_ROLE_GRANTS = {
         KemtaPermission.MANAGE_FINANCE,
         KemtaPermission.CREATE_OPPORTUNITY,
         KemtaPermission.MANAGE_SERVICE_REQUESTS,
+        KemtaPermission.ASSIGN_FIELD_AGENT,
+        KemtaPermission.CREATE_FIELD_MISSION,
+        KemtaPermission.VIEW_FIELD_REPORT,
+        KemtaPermission.REVIEW_FIELD_REPORT,
+        KemtaPermission.MANAGE_PROJECT_ISSUE,
     ),
     UserRole.ADMIN: tuple(permission for permission in KemtaPermission if permission != KemtaPermission.VIEW_AUDIT_LOGS),
     UserRole.SUPER_ADMIN: tuple(KemtaPermission),

@@ -12,6 +12,7 @@ import { CompanyProfilePage, CompanyPublicPage } from './features/btp/CompanyPag
 import { CompanyDocumentsPage, CompanyProfileSetupPage, CompanyVerificationStatusPage } from './features/btp/CompanySetupPages';
 import { CompaniesCatalogPage } from './features/btp/CompaniesCatalogPage';
 import { LegalPage } from './pages/LegalPage';
+import { MissionDetailPage } from './features/field-work/FieldOperations';
 
 export function App() {
   return <Routes>
@@ -23,6 +24,7 @@ export function App() {
     <Route path="/dashboard" element={<DashboardPage />} />
     <Route path="/dashboard/projets/:projectId" element={<ProjectDetailPage />} />
     <Route path="/dashboard/notifications" element={<NotificationsPage />} />
+    <Route path="/missions/:missionId" element={<MissionDetailPage />} />
     <Route path="/espace-client" element={<Navigate to="/dashboard" replace />} />
     <Route path="/opportunites" element={<OpportunitiesPage />} />
     <Route path="/entreprises-btp" element={<CompaniesCatalogPage />} />

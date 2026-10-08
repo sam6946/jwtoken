@@ -76,3 +76,11 @@ Quand `OBJECT_STORAGE_ENDPOINT` et `OBJECT_STORAGE_BUCKET` sont définis, Django
 - React Query partage les requêtes en vol, conserve les résultats 60 secondes par défaut et évite les refetch au focus ;
 - images marketing WebP responsive ; assets Vite hashés servis avec cache immutable ;
 - cache Redis de cinq minutes pour le catalogue public ; données privées non mises en cache globalement.
+
+## Opérations terrain
+
+`projects` contient le domaine de mission : `ProjectAssignment`, `FieldMission`, `FieldReport` et `ProjectIssue`. `ProjectAssignment` enrichit, sans supprimer, le M2M historique `Project.field_agents`; la migration additive recopie les agents déjà affectés. `Evidence` reste le pipeline de preuve historique, étendu par une mission/problème, le type vidéo et des métadonnées de capture.
+
+Les transitions sensibles, notifications in-app et événements d’audit sont regroupés dans `projects.field_workflow` avec transactions. Les viewsets ne font que le contrôle d’accès, la sérialisation et l’appel au service. Les grants supplémentaires sont ajoutés au RBAC existant (`KemtaPermission` / `RoleGrant`), jamais dans un système parallèle. `dashboard.FieldOperationsDashboardAPIView` fournit une lecture agrégée et bornée ; les collections complètes restent paginées.
+
+Côté navigateur, `features/field-work` contient les écrans métier et l’outbox IndexedDB. Les références client uniques permettent la reprise idempotente ; aucune géolocalisation continue ni cache prétendant rendre l’application entièrement utilisable sans premier chargement n’est mis en place.

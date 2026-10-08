@@ -1,5 +1,6 @@
 from django.db.models import Count, Q, Sum
 from django.utils import timezone
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -14,8 +15,29 @@ from notifications.serializers import NotificationSerializer
 from opportunities.models import Application, Opportunity, OpportunityStatus
 from opportunities.serializers import ApplicationSerializer, OpportunitySerializer
 from payments.models import Payment, PaymentStatus, Subscription, SubscriptionStatus
-from projects.models import Evidence, Project, ProjectExpense, ProjectStatus, ProjectTask
-from projects.serializers import EvidenceSerializer, ProjectSerializer, ProjectTaskSerializer
+from projects.models import (
+    Evidence,
+    FieldMission,
+    FieldReport,
+    FieldReportStatus,
+    IssueStatus,
+    MissionStatus,
+    Project,
+    ProjectAssignment,
+    ProjectExpense,
+    ProjectIssue,
+    ProjectStatus,
+    ProjectTask,
+)
+from projects.serializers import (
+    EvidenceSerializer,
+    FieldMissionSerializer,
+    FieldReportSerializer,
+    ProjectAssignmentSerializer,
+    ProjectIssueSerializer,
+    ProjectSerializer,
+    ProjectTaskSerializer,
+)
 from service_requests.models import ServiceRequest, ServiceRequestStatus
 from dashboard.serializers import DashboardServiceRequestSerializer
 
@@ -206,3 +228,91 @@ def _activity_description(event: AuditLog) -> str:
         "account.password_reset": "Le mot de passe du compte a été modifié.",
     }
     return messages.get(event.event, "Une activité a été enregistrée dans KEMTA.")
+
+
+class FieldOperationsDashboardAPIView(APIView):
+    """Vue agrégée, limitée et préchargée pour les consoles Chef/Agent.
+
+    Les écrans opérationnels évitent ainsi d'ouvrir une requête par carte de
+    mission tout en laissant les list endpoints paginés pour l'historique.
+    """
+
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        user = request.user
+        today = timezone.localdate()
+        mission_base = FieldMission.objects.select_related(
+            "project", "phase", "task", "assigned_to", "created_by", "field_report"
+        )
+        report_base = FieldReport.objects.select_related(
+            "mission", "mission__project", "submitted_by", "reviewed_by"
+        )
+        issue_base = ProjectIssue.objects.select_related("project", "mission", "reported_by", "assigned_to")
+        notifications = Notification.objects.filter(user=user).only(
+            "id", "notification_type", "title", "body", "action_url", "data", "read_at", "created_at"
+        ).order_by("-created_at")[:8]
+
+        if user.role == UserRole.PROJECT_MANAGER:
+            projects = Project.objects.filter(manager=user)
+            missions = mission_base.filter(project__manager=user)
+            reports = report_base.filter(mission__project__manager=user)
+            issues = issue_base.filter(project__manager=user)
+            assignments = ProjectAssignment.objects.filter(project__manager=user).select_related("project", "user", "assigned_by")
+            stats = {
+                "active_projects": projects.filter(status=ProjectStatus.ACTIVE).count(),
+                "missions_today": missions.filter(scheduled_start__date=today).exclude(status__in=(MissionStatus.APPROVED, MissionStatus.CANCELLED)).count(),
+                "missions_in_progress": missions.filter(status=MissionStatus.IN_PROGRESS).count(),
+                "reports_to_review": reports.filter(status__in=(FieldReportStatus.SUBMITTED, FieldReportStatus.UNDER_REVIEW)).count(),
+                "open_issues": issues.exclude(status__in=(IssueStatus.RESOLVED, IssueStatus.CLOSED)).count(),
+            }
+            return Response({
+                "role": user.role,
+                "generated_at": timezone.now(),
+                "statistics": stats,
+                "today_missions": FieldMissionSerializer(
+                    missions.filter(scheduled_start__date=today).order_by("scheduled_start")[:12], many=True
+                ).data,
+                "missions_in_progress": FieldMissionSerializer(
+                    missions.filter(status__in=(MissionStatus.ACCEPTED, MissionStatus.IN_PROGRESS, MissionStatus.REVISION_REQUIRED)).order_by("scheduled_start")[:12], many=True
+                ).data,
+                "reports_to_review": FieldReportSerializer(
+                    reports.filter(status__in=(FieldReportStatus.SUBMITTED, FieldReportStatus.UNDER_REVIEW)).order_by("submitted_at")[:12], many=True
+                ).data,
+                "open_issues": ProjectIssueSerializer(
+                    issues.exclude(status__in=(IssueStatus.RESOLVED, IssueStatus.CLOSED)).order_by("-created_at")[:12], many=True
+                ).data,
+                "assignments": ProjectAssignmentSerializer(assignments.order_by("project__name", "user__last_name")[:24], many=True).data,
+                "notifications": NotificationSerializer(notifications, many=True).data,
+            })
+
+        if user.role == UserRole.FIELD_AGENT:
+            missions = mission_base.filter(assigned_to=user)
+            reports = report_base.filter(submitted_by=user, mission__assigned_to=user)
+            issues = issue_base.filter(Q(reported_by=user) | Q(assigned_to=user)).distinct()
+            actionable = (MissionStatus.PLANNED, MissionStatus.ACCEPTED, MissionStatus.IN_PROGRESS, MissionStatus.REVISION_REQUIRED)
+            stats = {
+                "missions_today": missions.filter(scheduled_start__date=today, status__in=actionable).count(),
+                "in_progress": missions.filter(status=MissionStatus.IN_PROGRESS).count(),
+                "awaiting_correction": reports.filter(status=FieldReportStatus.REVISION_REQUIRED).count(),
+                "open_issues": issues.exclude(status__in=(IssueStatus.RESOLVED, IssueStatus.CLOSED)).count(),
+            }
+            return Response({
+                "role": user.role,
+                "generated_at": timezone.now(),
+                "statistics": stats,
+                "today_missions": FieldMissionSerializer(
+                    missions.filter(scheduled_start__date=today, status__in=actionable).order_by("scheduled_start")[:12], many=True
+                ).data,
+                "upcoming_missions": FieldMissionSerializer(
+                    missions.filter(scheduled_start__date__gt=today, status__in=actionable).order_by("scheduled_start")[:12], many=True
+                ).data,
+                "reports_to_correct": FieldReportSerializer(
+                    reports.filter(status=FieldReportStatus.REVISION_REQUIRED).order_by("-updated_at")[:8], many=True
+                ).data,
+                "my_open_issues": ProjectIssueSerializer(
+                    issues.exclude(status__in=(IssueStatus.RESOLVED, IssueStatus.CLOSED)).order_by("-created_at")[:8], many=True
+                ).data,
+                "notifications": NotificationSerializer(notifications, many=True).data,
+            })
+        raise PermissionDenied("Ce dashboard est réservé aux Chefs de Projet et Agents Terrain.")

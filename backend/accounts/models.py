@@ -32,6 +32,15 @@ class KemtaPermission(models.TextChoices):
     MANAGE_USERS = "MANAGE_USERS", "Gérer les utilisateurs"
     MANAGE_SERVICE_REQUESTS = "MANAGE_SERVICE_REQUESTS", "Gérer les demandes"
     VIEW_AUDIT_LOGS = "VIEW_AUDIT_LOGS", "Consulter les journaux"
+    ASSIGN_FIELD_AGENT = "ASSIGN_FIELD_AGENT", "Affecter des agents terrain"
+    CREATE_FIELD_MISSION = "CREATE_FIELD_MISSION", "Créer des missions terrain"
+    VIEW_FIELD_REPORT = "VIEW_FIELD_REPORT", "Consulter les rapports terrain"
+    REVIEW_FIELD_REPORT = "REVIEW_FIELD_REPORT", "Valider ou corriger les rapports terrain"
+    MANAGE_PROJECT_ISSUE = "MANAGE_PROJECT_ISSUE", "Gérer les problèmes de chantier"
+    VIEW_ASSIGNED_MISSION = "VIEW_ASSIGNED_MISSION", "Voir ses missions terrain"
+    EXECUTE_ASSIGNED_MISSION = "EXECUTE_ASSIGNED_MISSION", "Exécuter ses missions terrain"
+    SUBMIT_FIELD_REPORT = "SUBMIT_FIELD_REPORT", "Soumettre un rapport terrain"
+    REPORT_PROJECT_ISSUE = "REPORT_PROJECT_ISSUE", "Signaler un problème terrain"
 
 
 class UserManager(BaseUserManager):

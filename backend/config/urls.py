@@ -16,12 +16,16 @@ from companies.views import (
     PortfolioItemViewSet,
 )
 from dashboard.diagnostics import ClientDiagnosticAPIView
-from dashboard.views import DashboardAPIView
+from dashboard.views import DashboardAPIView, FieldOperationsDashboardAPIView
 from notifications.views import NotificationViewSet
 from opportunities.views import ApplicationViewSet, OpportunityViewSet
 from projects.views import (
     EvidenceViewSet,
+    FieldMissionViewSet,
+    FieldReportViewSet,
+    ProjectAssignmentViewSet,
     ProjectExpenseViewSet,
+    ProjectIssueViewSet,
     ProjectReportViewSet,
     ProjectTaskViewSet,
     ProjectViewSet,
@@ -36,6 +40,10 @@ router.register("evidences", EvidenceViewSet, basename="evidence")
 router.register("project-expenses", ProjectExpenseViewSet, basename="project-expense")
 router.register("project-tasks", ProjectTaskViewSet, basename="project-task")
 router.register("reports", ProjectReportViewSet, basename="project-report")
+router.register("project-assignments", ProjectAssignmentViewSet, basename="project-assignment")
+router.register("field-missions", FieldMissionViewSet, basename="field-mission")
+router.register("field-reports", FieldReportViewSet, basename="field-report")
+router.register("project-issues", ProjectIssueViewSet, basename="project-issue")
 router.register("companies", CompanyProfileViewSet, basename="company")
 router.register("portfolio", PortfolioItemViewSet, basename="portfolio")
 router.register("opportunities", OpportunityViewSet, basename="opportunity")
@@ -56,6 +64,7 @@ urlpatterns = [
     path("api/v1/companies/verification/queue/", CompanyVerificationQueueAPIView.as_view(), name="company-verification-queue"),
     path("api/v1/companies/<int:pk>/verification/", CompanyVerificationDecisionAPIView.as_view(), name="company-verification-decision"),
     path("api/v1/dashboard/", DashboardAPIView.as_view(), name="dashboard"),
+    path("api/v1/dashboard/field-operations/", FieldOperationsDashboardAPIView.as_view(), name="field-operations-dashboard"),
     path("api/v1/diagnostics/client/", ClientDiagnosticAPIView.as_view(), name="client-diagnostic"),
     path("api/v1/", include(router.urls)),
 ]

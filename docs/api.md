@@ -177,3 +177,18 @@ Les tâches de chantier sont exposées par `GET /project-tasks/` (projet, étape
 ## Paiements
 
 Les modèles `SubscriptionPlan`, `Subscription`, `Payment` et `PaymentTransaction` sont configurables via le back-office. `payments.providers.PaymentProvider` définit le contrat d’intégration et `create_payment_intent` protège la clé d’idempotence. L’appel échoue volontairement tant qu’un adaptateur MTN MoMo, Orange Money ou carte réellement configuré n’est pas installé. Aucun webhook ni faux statut de paiement n’est exposé.
+
+## Opérations terrain : missions, rapports et problèmes
+
+Les tableaux Chef de Projet et Agent Terrain sont alimentés par `GET /dashboard/field-operations/`. Cette réponse est agrégée, plafonnée et réservée aux deux rôles ; les historiques passent par les ressources paginées ci-dessous.
+
+- `GET|POST|PATCH /project-assignments/` : affectations d’agents par le Chef du projet.
+- `GET|POST|PATCH /field-missions/` : missions ; un agent ne voit que celles qui lui sont affectées.
+- `POST /field-missions/{id}/accept/` et `POST /field-missions/{id}/start/` : transitions Agent. `start` accepte éventuellement `latitude` et `longitude` si la mission demande une confirmation ponctuelle de lieu.
+- `GET|POST|PATCH /field-reports/`, puis `POST /field-reports/{id}/submit/` : un rapport par mission, créé et modifié par l’agent auteur.
+- `POST /field-reports/{id}/start-review/`, `/approve/`, `/request-revision/` : revue du Chef du projet. Une correction exige `{"reason": "…"}` ; l’auteur ne peut jamais valider son rapport.
+- `GET|POST|PATCH /project-issues/` : anomalies déclarées depuis une mission propre, puis traitées par le Chef.
+
+Une mission suit `PLANNED → ACCEPTED → IN_PROGRESS → SUBMITTED → UNDER_REVIEW → APPROVED`, avec la boucle `REVISION_REQUIRED → IN_PROGRESS → SUBMITTED`. `Evidence` accepte `evidence_type: PHOTO|VIDEO`, une liaison `mission`/`issue` et les coordonnées facultatives. Une création hors connexion doit envoyer `client_reference` ou l’en-tête `Idempotency-Key`; les créations répétées avec cette référence retournent la ressource existante.
+
+La description complète de sécurité, stockage média et reprise IndexedDB est dans [`field-work.md`](field-work.md).

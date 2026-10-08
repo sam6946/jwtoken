@@ -23,6 +23,30 @@
 | `dashboard` | vue agrégée adaptée au rôle et aux accès |
 | `common` | pagination, health checks, audit log, request ID |
 
+## Organisation du code applicatif
+
+### Backend
+
+Les apps Django restent les frontières de domaine. À l’intérieur d’une app, les dépendances suivent ce sens : **modèles → règles métier/services → serializers/permissions → vues HTTP**. Les vues ne doivent pas réimplémenter une règle métier ni appeler un fournisseur directement.
+
+Le parcours de vérification BTP illustre cette convention :
+
+- `companies/verification/constants.py` porte les règles stables et les types de pièces ;
+- `documents.py` valide, stocke et évalue la complétude ;
+- `progress.py` construit la checklist et le snapshot propriétaire ;
+- `decisions.py` porte les transitions, notifications et audits ;
+- `companies/verification/__init__.py` expose la façade publique compatible `companies.verification`.
+
+Les migrations sont des archives de schéma : elles ne sont ni refactorées ni fusionnées après livraison. Les routes dans `config/urls.py`, les noms de serializer et les clés JSON sont des contrats à préserver ou à versionner explicitement.
+
+### Frontend
+
+`src/features` regroupe les écrans par domaine ; `src/lib` contient les primitives transverses (HTTP et session) et `src/components` les éléments de site réutilisables. Les routes de `App.tsx` importent des façades stables lorsque des écrans sont découpés, ce qui évite de coupler le routeur à l’arborescence interne.
+
+- `DashboardPage.tsx` orchestre session, chargement et rôle ; `DashboardRoleViews.tsx` contient les vues métier, et `dashboardTypes.ts` leurs contrats d’API.
+- `CompanySetupPages.tsx` conserve les exports de route ; chaque étape est isolée dans `features/btp/company-setup/` avec ses briques partagées dans `shared.tsx`.
+- `styles.css` n’est qu’un index : les règles CSS sont séparées par domaine dans `src/styles/` et importées dans l’ordre historique. Modifier une feuille sans changer cet ordre évite les régressions de cascade.
+
 ## Flux d’authentification
 
 1. Normaliser le numéro au format international ; l’interface client saisit un numéro camerounais à 9 chiffres avec indicatif `+237`.

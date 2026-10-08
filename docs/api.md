@@ -129,10 +129,23 @@ Les clients ne voient que leurs projets. Les budgets ne sont pas sérialisés po
 - `GET /companies/?page_size=12&search=Douala` : profils publiés uniquement, recherche nom/ville/présentation, pagination.
 - `GET /companies/{slug}/` : profil public et réalisations publiées.
 - `GET /companies/me/` : profil propre, 404 s’il n’existe pas encore.
-- `PUT /companies/me/` : crée ou met à jour le profil ; les champs `verified` et `is_published` sont uniquement administrables.
+- `PUT /companies/me/` : crée ou remplace le profil ; `PATCH /companies/me/` enregistre une mise à jour partielle (notamment « continuer plus tard »). Les champs `verified` et `is_published` sont uniquement administrables.
 - `/portfolio/` : gestion des réalisations par l’entreprise liée.
 
 Un profil n’est public qu’après publication par l’équipe KEMTA. Le fait de compléter le formulaire ne confère pas automatiquement un badge vérifié.
+
+### Vérification d’entreprise
+
+L’inscription `BTP_COMPANY` accepte le champ optionnel `company_name` et crée un profil brouillon. Elle reste protégée par le même OTP d’inscription que les autres comptes.
+
+- `GET|POST /companies/me/documents/` : liste ou ajoute/remplace une pièce privée. Le `POST` est un `multipart/form-data` avec `document_type` et `file` ; les formats PDF/JPG/PNG/WebP sont limités à 8 Mo.
+- `GET /companies/me/documents/{id}/file/` : sert une pièce après contrôle de propriété ; l’entreprise propriétaire, un administrateur KEMTA ou un membre staff autorisé y accède. Le catalogue public n’expose jamais ces fichiers.
+- `GET /companies/me/verification/` : renvoie le statut, le niveau, la checklist, les pièces, les champs manquants et les dates de décision.
+- `POST /companies/me/verification/submit/` : soumet le dossier lorsque le profil et les trois pièces obligatoires sont complets (`RCCM`, `NIU`, pièce d’identité du représentant légal).
+- `GET /companies/verification/queue/?limit=20` : file des dossiers `PENDING` ou `UNDER_REVIEW`, réservée à KEMTA.
+- `POST /companies/{id}/verification/` : décision KEMTA avec `action` parmi `start_review`, `approve`, `reject`, `request_correction`, `suspend`. Un motif d’au moins cinq caractères est obligatoire pour les décisions négatives ; `document_type` cible une pièce lors de `request_correction`.
+
+Les statuts de dossier sont `DRAFT`, `PENDING`, `UNDER_REVIEW`, `VERIFIED`, `REJECTED` et `SUSPENDED`. Les niveaux sont `ACCOUNT`, `PROFILE`, `BUSINESS_VERIFIED` et `ADVANCED`. Les actions génèrent un audit et une notification via les services existants.
 
 ## Opportunités et candidatures
 

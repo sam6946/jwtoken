@@ -8,7 +8,7 @@
 - Demande de service multi-étapes pour construire, reprendre le suivi d’un chantier, entretenir un bien ou décrire un autre besoin. Les demandes sont persistées, référencées `KEMTA-REQ-XXXXXX` et peuvent contenir des pièces jointes JPG/PNG/WebP/PDF validées côté serveur.
 - Inscription, connexion par mot de passe ou OTP, vérification téléphone, réinitialisation du mot de passe, rotation du refresh token HttpOnly et RBAC.
 - Espace client (propriétaire) : compteur de projets suivis par KEMTA, cartes de projets cliquables, fiche de chantier avec budget, dépenses et **reçus téléchargeables**, demandes rattachées, notifications avec marquage lu, et nouvelle demande pouvant viser un chantier existant.
-- Espace KEMTA BTP, profil entreprise, catalogue public vérifié, opportunités paginées et candidatures avec statut.
+- Espace KEMTA BTP, création de compte entreprise avec téléphone/OTP existant, profil légal sauvegardable, dépôt privé des pièces de vérification, suivi de dossier, catalogue public vérifié, opportunités paginées et candidatures avec statut.
 - Espace d’administration KEMTA avec indicateurs et accès au back-office Django pour traiter les enregistrements.
 - Base de données PostgreSQL en Docker, cache/OTP/Celery sur Redis, tâches asynchrones, stockage local en développement et S3 compatible en production.
 - Tests API sur les parcours d’authentification, demandes, projets, permissions, profils d’entreprise et candidatures.
@@ -84,6 +84,15 @@ npm run build
 
 Codes de sortie utiles : `python manage.py test`, `npx tsc -b --force` et `npm run build` sont les trois contrôles à passer avant toute livraison.
 
+## Organisation du code et maintenance
+
+Le code est organisé par domaine métier ; les routes et contrats publics ne doivent pas dépendre de l’emplacement interne d’une implémentation.
+
+- **Backend** : chaque app Django contient ses modèles, serializers, permissions et vues. Le domaine `companies.verification` est découpé en `constants`, `documents`, `progress` et `decisions` ; son `__init__.py` conserve la façade historique `companies.verification` pour les appels existants.
+- **Frontend** : une fonctionnalité React vit dans `src/features/<domaine>`. Les écrans de vérification sont séparés par étape sous `features/btp/company-setup/`, tandis que `CompanySetupPages.tsx` reste une façade de compatibilité pour les routes actuelles. Les vues de dashboard sont séparées de l’orchestration dans `DashboardRoleViews.tsx`, avec leurs contrats dans `dashboardTypes.ts`.
+- **Styles** : `src/styles.css` est uniquement le point d’entrée. Les feuilles sont importées par domaine dans un ordre stable (`foundation`, marketing, demande, auth, dashboard, BTP, responsive et vérification) afin de préserver la cascade existante.
+- **Documentation** : [`docs/architecture.md`](docs/architecture.md) décrit les frontières techniques ; [`docs/api.md`](docs/api.md) est la source de vérité des contrats HTTP. Toute modification de comportement doit être accompagnée d’un test et de la mise à jour du document concerné.
+
 ### Limites anti-abus en développement
 
 Les limites de production protègent les formulaires publics (`service_request` 10/heure, `auth_login` 10/minute, `otp` 5/heure). La recette automatisée enchaîne les envois et les atteint légitimement. En développement uniquement, `KEMTA_THROTTLE_FACTOR` multiplie ces seuils (`KEMTA_THROTTLE_FACTOR=30 python manage.py runserver`) ; la variable est ignorée en production, et `python manage.py clear_throttles` remet les compteurs à zéro sur le serveur courant (refusé si `DEBUG=False`).
@@ -99,7 +108,9 @@ Préfixe versionné : `/api/v1/`.
 - `POST /auth/password-reset/confirm/`, `POST /auth/token/refresh/`, `POST /auth/logout/`, `GET /auth/me/`
 - `GET|POST /service-requests/`
 - `GET|POST|PATCH /projects/`, `/evidences/`, `/project-tasks/`, `/reports/`
-- `GET /companies/`, `GET /companies/{slug}/`, `GET|PUT /companies/me/`, `/portfolio/`
+- `GET /companies/`, `GET /companies/{slug}/`, `GET|PUT|PATCH /companies/me/`, `/portfolio/`
+- `GET|POST /companies/me/documents/`, `GET /companies/me/documents/{id}/file/`, `GET /companies/me/verification/`, `POST /companies/me/verification/submit/`
+- `GET /companies/verification/queue/`, `POST /companies/{id}/verification/` — accès KEMTA
 - `GET|POST /opportunities/`, `GET|POST|PATCH /applications/`
 - `GET /notifications/`, `POST /notifications/{id}/mark-read/`
 - `GET /dashboard/` — réponse agrégée par rôle

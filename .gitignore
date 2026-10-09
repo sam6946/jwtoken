@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.sqlite3
+.venv/
+venv/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Frontend
+node_modules/
+frontend/dist/
+frontend/.vite/
+
+# Environment and local uploads
+.env
+.env.*.local
+backend/media/
+backend/staticfiles/
+
+# Editors / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp

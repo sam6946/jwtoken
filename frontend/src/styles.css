@@ -1,0 +1,18 @@
+/**
+ * Point d’entrée des styles KEMTA.
+ *
+ * Les feuilles sont importées dans l’ordre historique pour préserver la cascade
+ * existante tout en permettant une maintenance par domaine fonctionnel.
+ */
+@import './styles/foundation.css';
+@import './styles/marketing.css';
+@import './styles/request-wizard.css';
+@import './styles/auth.css';
+@import './styles/dashboard.css';
+@import './styles/btp-opportunities.css';
+@import './styles/company-catalog.css';
+@import './styles/responsive.css';
+@import './styles/project-dashboard.css';
+@import './styles/company-verification.css';
+@import './styles/field-work.css';
+@import './styles/administration.css';

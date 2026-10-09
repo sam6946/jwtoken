@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     "opportunities.apps.OpportunitiesConfig",
     "notifications.apps.NotificationsConfig",
     "payments.apps.PaymentsConfig",
+    "administration.apps.AdministrationConfig",
     "dashboard.apps.DashboardConfig",
 ]
 

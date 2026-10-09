@@ -12,6 +12,7 @@ import { CompanyProfilePage, CompanyPublicPage } from './features/btp/CompanyPag
 import { CompanyDocumentsPage, CompanyProfileSetupPage, CompanyVerificationStatusPage } from './features/btp/CompanySetupPages';
 import { CompaniesCatalogPage } from './features/btp/CompaniesCatalogPage';
 import { LegalPage } from './pages/LegalPage';
+import { AdministrationPage } from './features/administration/AdministrationPage';
 import { MissionDetailPage } from './features/field-work/FieldOperations';
 
 export function App() {
@@ -22,6 +23,7 @@ export function App() {
     <Route path="/inscription" element={<AuthPage />} />
     <Route path="/mot-de-passe-oublie" element={<AuthPage />} />
     <Route path="/dashboard" element={<DashboardPage />} />
+    <Route path="/administration/:section?" element={<AdministrationPage />} />
     <Route path="/dashboard/projets/:projectId" element={<ProjectDetailPage />} />
     <Route path="/dashboard/notifications" element={<NotificationsPage />} />
     <Route path="/missions/:missionId" element={<MissionDetailPage />} />

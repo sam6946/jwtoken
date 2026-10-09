@@ -16,6 +16,10 @@ from companies.views import (
     PortfolioItemViewSet,
 )
 from dashboard.diagnostics import ClientDiagnosticAPIView
+from administration.views import (
+    AdminCollectionAPIView, AdminCsvExportAPIView, AdminDashboardAPIView, AdminNotificationAPIView,
+    AdminSearchAPIView, AdminUserViewSet, PlatformSettingViewSet, SupportTicketViewSet,
+)
 from dashboard.views import DashboardAPIView, FieldOperationsDashboardAPIView
 from notifications.views import NotificationViewSet
 from opportunities.views import ApplicationViewSet, OpportunityViewSet
@@ -34,6 +38,10 @@ from service_requests.views import ServiceRequestViewSet
 from common.health import health, readiness
 
 router = DefaultRouter()
+admin_router = DefaultRouter()
+admin_router.register("users", AdminUserViewSet, basename="admin-user")
+admin_router.register("support-tickets", SupportTicketViewSet, basename="admin-support-ticket")
+admin_router.register("settings", PlatformSettingViewSet, basename="admin-setting")
 router.register("service-requests", ServiceRequestViewSet, basename="service-request")
 router.register("projects", ProjectViewSet, basename="project")
 router.register("evidences", EvidenceViewSet, basename="evidence")
@@ -64,6 +72,12 @@ urlpatterns = [
     path("api/v1/companies/verification/queue/", CompanyVerificationQueueAPIView.as_view(), name="company-verification-queue"),
     path("api/v1/companies/<int:pk>/verification/", CompanyVerificationDecisionAPIView.as_view(), name="company-verification-decision"),
     path("api/v1/dashboard/", DashboardAPIView.as_view(), name="dashboard"),
+    path("api/v1/admin/dashboard/", AdminDashboardAPIView.as_view(), name="admin-dashboard"),
+    path("api/v1/admin/search/", AdminSearchAPIView.as_view(), name="admin-search"),
+    path("api/v1/admin/notifications/send/", AdminNotificationAPIView.as_view(), name="admin-notification-send"),
+    path("api/v1/admin/export/<str:resource>/", AdminCsvExportAPIView.as_view(), name="admin-export"),
+    path("api/v1/admin/", include(admin_router.urls)),
+    path("api/v1/admin/<str:resource>/", AdminCollectionAPIView.as_view(), name="admin-collection"),
     path("api/v1/dashboard/field-operations/", FieldOperationsDashboardAPIView.as_view(), name="field-operations-dashboard"),
     path("api/v1/diagnostics/client/", ClientDiagnosticAPIView.as_view(), name="client-diagnostic"),
     path("api/v1/", include(router.urls)),

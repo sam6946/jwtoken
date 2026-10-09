@@ -255,6 +255,7 @@ export function AdminDashboard({ data }: { data: DashboardResponse }) {
       </section>
       <section className="admin-quick-links">
         <span className="dashboard-eyebrow">Administration</span><h2>Accès rapide</h2>
+        <Link to="/administration" className="button button-primary button-small"><ShieldCheck size={16} /> Ouvrir la console <ArrowRight size={15} /></Link>
         <a href="/admin/service_requests/servicerequest/" target="_blank" rel="noreferrer"><FileText size={17} /> Gérer les demandes <ArrowRight size={15} /></a>
         <a href="/admin/companies/companyprofile/" target="_blank" rel="noreferrer"><Building2 size={17} /> Vérifier les entreprises <ArrowRight size={15} /></a>
         <a href="/admin/opportunities/opportunity/" target="_blank" rel="noreferrer"><BriefcaseBusiness size={17} /> Publier une opportunité <ArrowRight size={15} /></a>
